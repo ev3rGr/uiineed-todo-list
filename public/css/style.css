@@ -1760,3 +1760,104 @@ span.shortcut-name {
 .custom-alert-btn.cancel {
   background: var(--deleted);
 }
+
+/* Subtasks */
+.subtasks-panel {
+  padding: 12px 14px 14px 56px;
+  border-top: 2px dashed rgba(51, 50, 46, 0.28);
+  background: #fffdf8;
+}
+.subtasks-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+  color: rgba(51, 50, 46, 0.62);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.subtask-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+}
+.subtask-check,
+.subtask-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--font-color);
+}
+.subtask-check {
+  width: 21px;
+  height: 21px;
+  border: 2px solid var(--black);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+.subtask-check span { opacity: 0; transform: scale(0.5); }
+.subtask-check.checked { background: var(--completed); }
+.subtask-check.checked span { opacity: 1; transform: scale(1); }
+.subtask-check:hover {
+  transform: translateY(-1px);
+  box-shadow: 2px 2px 0 var(--black);
+}
+.subtask-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.35;
+}
+.subtask-title.completed {
+  background: transparent;
+  color: var(--font-color-complete);
+}
+.subtask-delete {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.45;
+}
+.subtask-delete:hover { background: var(--bg-discard); opacity: 1; }
+.subtask-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-top: 8px;
+}
+.subtask-form input {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  cursor: text;
+  font-size: 14px;
+}
+.subtask-form button {
+  min-width: 58px;
+  padding: 7px 12px;
+  border: var(--border);
+  border-radius: 9px;
+  background: var(--bg-submit);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+.subtask-form button:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--black);
+}
+.subtask-form button:disabled { cursor: not-allowed; opacity: 0.45; }
+@media only screen and (max-width: 768px) {
+  .subtasks-panel { padding: 12px 12px 14px 20px; }
+}

@@ -13,7 +13,7 @@
             content="uiineed's Todo List Online is a minimalist, no-login-required web app that helps you manage your tasks and schedules effortlessly. Store your todos securely in your browser's local cache, and enjoy a seamless experience without the hassle of sign-ups or logins. Perfect for both personal and professional use!">
         <link type="favicon" rel="shortcut icon" href="public/img/favicon.png"/>
         <link href="public/css/normalize.css" rel="stylesheet" media="screen">
-        <link href="public/css/style.min.css" rel="stylesheet" media="screen">
+        <link href="public/css/style.css" rel="stylesheet" media="screen">
         <script>
             // Automatically detect and switch language
             const browserLanguage = navigator.language || navigator.userLanguage;
@@ -244,6 +244,41 @@
                                 </div>
 
                                 <div
+                                    class="subtasks-panel"
+                                    v-if="!todo.removed"
+                                    @mousedown.stop
+                                    @dragstart.stop.prevent>
+                                    <div class="subtasks-heading" v-if="todo.subtasks.length">
+                                        <span>Subtasks</span>
+                                        <span>{{ completedSubtasks(todo) }}/{{ todo.subtasks.length }}</span>
+                                    </div>
+                                    <div class="subtask-row" v-for="subtask in todo.subtasks" :key="subtask.id">
+                                        <button
+                                            type="button"
+                                            class="subtask-check"
+                                            :class="{checked: subtask.completed}"
+                                            :aria-label="subtask.completed ? 'Mark subtask as incomplete' : 'Mark subtask as complete'"
+                                            @click="toggleSubtask(subtask)">
+                                            <span aria-hidden="true">✓</span>
+                                        </button>
+                                        <span class="subtask-title" :class="{completed: subtask.completed}">{{ subtask.title }}</span>
+                                        <button
+                                            type="button"
+                                            class="subtask-delete"
+                                            aria-label="Delete subtask"
+                                            @click="removeSubtask(todo, subtask)">×</button>
+                                    </div>
+                                    <form class="subtask-form" @submit.prevent="addSubtask(todo)">
+                                        <input
+                                            type="text"
+                                            v-model="newSubtaskTitles[todo.id]"
+                                            placeholder="Add a subtask..."
+                                            :aria-label="'Add a subtask to ' + todo.title" />
+                                        <button type="submit" :disabled="!hasSubtaskTitle(todo)">Add</button>
+                                    </form>
+                                </div>
+
+                                <div
                                     class="edit-todo-wrapper"
                                     v-if="editedTodo !== null && editedTodo.id === todo.id">
                                     <input
@@ -445,6 +480,11 @@
                     var todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
                     todos.forEach(function(todo, index) {
                         todo.id = index;
+                        if (!Array.isArray(todo.subtasks)) todo.subtasks = [];
+                        todo.subtasks.forEach(function(subtask, subtaskIndex) {
+                            subtask.id = subtask.id || ('subtask-' + index + '-' + subtaskIndex);
+                            subtask.completed = !!subtask.completed;
+                        });
                     });
                     todoStorage.uid = todos.length;
                     return todos;
@@ -462,6 +502,7 @@
                     return {
                         todos: todoStorage.fetch(),
                         newTodoTitle: '',
+                        newSubtaskTitles: {},
                         editedTodo: null,
                         intention: 'all', // Default: all
                         checkEmpty: false,
@@ -538,7 +579,8 @@
                             id: todoStorage.uid++,
                             title: this.newTodoTitle,
                             completed: false,
-                            removed: false
+                            removed: false,
+                            subtasks: []
                         });
                         this.newTodoTitle = '';
                         this.checkEmpty = false;
@@ -549,6 +591,31 @@
                     },
                     markAsUncompleted: function(todo) {
                         todo.completed = false;
+                    },
+                    hasSubtaskTitle: function(todo) {
+                        return !!(this.newSubtaskTitles[todo.id] || '').trim();
+                    },
+                    addSubtask: function(todo) {
+                        var title = (this.newSubtaskTitles[todo.id] || '').trim();
+                        if (!title) return;
+                        todo.subtasks.push({
+                            id: 'subtask-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+                            title: title,
+                            completed: false
+                        });
+                        this.$set(this.newSubtaskTitles, todo.id, '');
+                    },
+                    toggleSubtask: function(subtask) {
+                        subtask.completed = !subtask.completed;
+                    },
+                    removeSubtask: function(todo, subtask) {
+                        var index = todo.subtasks.indexOf(subtask);
+                        if (index !== -1) todo.subtasks.splice(index, 1);
+                    },
+                    completedSubtasks: function(todo) {
+                        return todo.subtasks.filter(function(subtask) {
+                            return subtask.completed;
+                        }).length;
                     },
                     markAllAsCompleted: function() {
                         confirm('Confirm to mark all as completed?').then((confirmed) => {
@@ -589,7 +656,8 @@
                                 id: todoStorage.uid++,
                                 title: this.newTodoTitle,
                                 completed: false,
-                                removed: false
+                                removed: false,
+                                subtasks: []
                             });
                             this.newTodoTitle = '';
                             this.checkEmpty = false;
@@ -784,6 +852,7 @@
                                 // Update ids for imported data
                                 importedData.forEach((item, index) => {
                                     item.id = nextIdIndex + index;
+                                    if (!Array.isArray(item.subtasks)) item.subtasks = [];
                                 });
                                 // Append imported data to existing data
                                 var updatedTodos = currentTodos.concat(importedData);
